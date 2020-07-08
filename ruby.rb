@@ -1,9 +1,3 @@
-module Comparable
-    def compare(num, comp)
-        num < comp ? left : right
-    end
-end
-
 class Node
     attr_accessor :left, :value, :right
 
@@ -15,47 +9,41 @@ class Node
 end
 
 class Tree
-    include Comparable
-
     attr_accessor :root
 
     def initialize(array)
-        @root = build_tree(array)
+        @array = array.sort.uniq
+        @root = build_tree(@array)
         @queue = []
     end
 
     def build_tree(array)
-        root = Node.new(array[0])
-        array.each do |n|
-            insert(root, n)
-        end
-        return root
+        return nil if array.empty?
+        center = array.length/2
+        node = Node.new(array[center])
+        node.left = build_tree(array[0...center])
+        node.right = build_tree(array[center + 1..-1])
+        node
     end
 
-    def insert(node, value)
-        if value == node.value #removes duplicates
-        elsif value > node.value 
-            if node.right
-                insert(node.right, value)
-            else
-                node.right = Node.new(value)
-            end
-        else
-            if node.left
-                insert(node.left, value)
-            else
-                node.left = Node.new(value)
-            end
+    def insert(value, node = @root)
+        case value <=> node.value
+        when -1
+          node.left ? insert(value, node.left) : node.left = Node.new(value)
+        when 0
+          return "duplicate"
+        when 1
+          node.right ? insert(value, node.right) : node.right = Node.new(value)
         end
     end
 
-    def delete(key, root = @root)
-        if root == nil
+    def delete(key, node = @root) #needs to be corrected
+        if node == nil
             return nil
-        elsif key < root.value
-            root.left = delete(key, root.left)
-        elsif key > root.value
-            root.right = delete(key, root.right)
+        elsif key < node.value
+            delete(key, node.left)
+        elsif key > node.value
+            delete(key, node.right)
         else
             if (root.left == nil) 
                 return root.right; 
@@ -71,62 +59,64 @@ class Tree
             root.right = delete(root, root.right); 
     end
 
-    def minValue(root)  # used for delete
-        minv = root.value
-        while root.left != nil
-            minv = root.left.value
-            root = root.left
+    def minValue(node = @root)  # used for delete
+        minv = node.value
+        while node.left != nil
+            minv = node.left.value
+            node = node.left
         end
         return minv
     end
 
-    def find(root, number)
-        #root = @root
-        if root == nil 
+    def find(data, node = @root)
+        if node == nil 
             return nil
-        elsif number == root.value 
-            return root
-        elsif number < root.value  
-            return find(root.left, number)
-        elsif number > root.value
-            return find(root.right, number)
-        else 
+        elsif data == node.value 
+            return node.value
+        elsif data < node.value  
+            return find(data, node.left)
+        elsif data > node.value
+            return find(data, node.right)
+        else
+            puts "#{number} is not in this tree" 
             #why isnt this working???
         end
-        puts "#{number} is not in this tree"
     end
 
-    def level_order(root = @root)
-        return nil if root == nil
-        @queue.push(root)
+    def level_order(node = @root)
+        return nil if node == nil
+        output = []
+        @queue.push(node)
         while @queue.length > 0
             current = @queue[0]
+            output.push(current) #for rebalance
             print "( #{current.value} ) -> "
             @queue.push(current.left) if current.left 
             @queue.push(current.right) if current.right 
             @queue.shift
         end
+        current
     end
 
-    def inorder(root)
-        return if root == nil
-        inorder(root.left)
-        print "#{root.value} -> "
-        inorder(root.right)
+    def inorder(node = @root)
+        return if node == nil
+        inorder(node.left)
+        print "#{node.value} -> "
+        inorder(node.right)
     end
 
-    def preorder(root)
-        return if root == nil
-        print "#{root.value} -> "
-        preorder(root.left)
-        preorder(root.right)
+    def preorder(node = @root)
+        return if node == nil
+        print "#{node.value} -> "
+        preorder(node.left)
+        preorder(node.right)
     end 
 
-    def postorder(root)
-        return if root == nil
-        postorder(root.left)
-        postorder(root.right)
-        print "#{root.value} -> "
+    def postorder(node = @root)
+        return if node == nil
+        postorder(node.left)
+        postorder(node.right)
+        print "#{node.value} -> "
     end
 
     def depth(node = @root) 
@@ -146,14 +136,11 @@ class Tree
         return (depth(left_subtree) - depth(right_subtree)).abs <= 1
     end
 
-    def rebalance!(arr)
-        halfway = arr.size/2.0
-        arr.sort!
-        arr1 = arr.slice(0, halfway)
-        arr2 = arr.slice(halfway, halfway)
-        arr = arr2 | arr1
-
-        @root = build_tree(arr)
+    def rebalance!()  #needs to be fixed
+        #seems like this is the best methodology: https://appliedgo.net/balancedtree/
+        #which would include new instance variable that tracks depth as info added to the tree and rebalances in real time.
+        output = level_order()
+        @root = build_tree(output.sort.uniq)
     end
 end
 
@@ -162,21 +149,27 @@ arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 323]
 tree = Tree.new(arr)
 
 #tree = Tree.new(Array.new(15) { rand(1..100) })
-tree.inorder(tree.root)
-puts ""
-puts tree.find(tree.root, 9)
-
-puts "depth:"
-print tree.depth(tree.root)
-puts ""
+puts "inorder:" 
+puts tree.inorder()
+puts "find:"
+puts tree.find(9)
+puts "depth:" 
+puts tree.depth()
+puts "level order:"
+puts tree.level_order()
 
 #tree.delete(23)
 
-tree.level_order(tree.root)
-puts ""
+puts "balanced: #{tree.balanced?()}"
 
-puts tree.balanced?()
-tree.rebalance!(arr)
-puts tree.balanced?()
+tree.insert(12)
+tree.insert(15)
+tree.insert(1)
+tree.insert(51)
+
+puts "inorder: #{tree.inorder()}"
+
+#tree.rebalance!()
+puts "balanced (after rebalance): #{tree.balanced?()}"
 
 puts tree.depth
