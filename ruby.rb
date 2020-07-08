@@ -85,12 +85,23 @@ class Tree
 
     def level_order(node = @root)
         return nil if node == nil
+        @queue.push(node)
+        while @queue.length > 0
+            current = @queue[0]
+            print "#{current.value} -> "
+            @queue.push(current.left) if current.left 
+            @queue.push(current.right) if current.right 
+            @queue.shift
+        end
+    end
+
+    def level_order_rebal(node = @root) #for rebalance
+        return nil if node == nil
         output = []
         @queue.push(node)
         while @queue.length > 0
             current = @queue[0]
             output.push(current.value) #for rebalance
-            print "( #{current.value} ) -> "
             @queue.push(current.left) if current.left 
             @queue.push(current.right) if current.right 
             @queue.shift
@@ -137,45 +148,7 @@ class Tree
     end
 
     def rebalance!()  
-        output = level_order()
+        output = level_order_rebal()
         @root = build_tree(output.sort.uniq)
     end
 end
-
-
-arr = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 323]
-tree = Tree.new(arr)
-
-#tree = Tree.new(Array.new(15) { rand(1..100) })
-puts "inorder:" 
-puts tree.inorder()
-puts "find:"
-puts tree.find(9)
-puts "depth:" 
-puts tree.depth()
-#puts "level order:"
-#puts tree.level_order()
-
-tree.delete(23)
-
-
-
-tree.insert(12)
-tree.insert(15)
-tree.insert(1)
-tree.insert(51)
-tree.insert(1000)
-tree.insert(1001)
-tree.insert(1000000)
-tree.insert(101)
-tree.insert(120)
-
-puts "balanced: #{tree.balanced?()}"
-puts tree.depth()
-
-puts "inorder: #{tree.inorder()}"
-
-tree.rebalance!()
-puts "balanced (after rebalance): #{tree.balanced?()}"
-
-puts tree.depth
