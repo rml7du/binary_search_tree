@@ -89,13 +89,13 @@ class Tree
         @queue.push(node)
         while @queue.length > 0
             current = @queue[0]
-            output.push(current) #for rebalance
+            output.push(current.value) #for rebalance
             print "( #{current.value} ) -> "
             @queue.push(current.left) if current.left 
             @queue.push(current.right) if current.right 
             @queue.shift
         end
-        current
+        output
     end
 
     def inorder(node = @root)
@@ -136,9 +136,7 @@ class Tree
         return (depth(left_subtree) - depth(right_subtree)).abs <= 1
     end
 
-    def rebalance!()  #needs to be fixed
-        #seems like this is the best methodology: https://appliedgo.net/balancedtree/
-        #which would include new instance variable that tracks depth as info added to the tree and rebalances in real time.
+    def rebalance!()  
         output = level_order()
         @root = build_tree(output.sort.uniq)
     end
@@ -155,21 +153,29 @@ puts "find:"
 puts tree.find(9)
 puts "depth:" 
 puts tree.depth()
-puts "level order:"
-puts tree.level_order()
+#puts "level order:"
+#puts tree.level_order()
 
-#tree.delete(23)
+tree.delete(23)
 
-puts "balanced: #{tree.balanced?()}"
+
 
 tree.insert(12)
 tree.insert(15)
 tree.insert(1)
 tree.insert(51)
+tree.insert(1000)
+tree.insert(1001)
+tree.insert(1000000)
+tree.insert(101)
+tree.insert(120)
+
+puts "balanced: #{tree.balanced?()}"
+puts tree.depth()
 
 puts "inorder: #{tree.inorder()}"
 
-#tree.rebalance!()
+tree.rebalance!()
 puts "balanced (after rebalance): #{tree.balanced?()}"
 
 puts tree.depth
